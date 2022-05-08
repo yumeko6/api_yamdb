@@ -41,6 +41,15 @@ class Genre(models.Model):
 
 
 class User(AbstractUser):
+    username = models.CharField(
+        'Username',
+        max_length=255,
+        unique=True
+    )
+    email = models.EmailField(
+        'Email Address',
+        unique=True
+    )
     bio = models.TextField(
         'Биография',
         blank=True,
