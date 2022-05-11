@@ -26,3 +26,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
+
+
+#class UserAuthSerializer(serializers.ModelSerializer):
+#    class Meta:
+#        model = User
+#        fields = ('username', 'confirmation_code')
+
