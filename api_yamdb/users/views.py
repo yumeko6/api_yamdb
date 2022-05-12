@@ -4,13 +4,13 @@ from django.core.mail import EmailMessage
 
 from rest_framework import viewsets, mixins, filters, status
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 
+from api.permissions import AdminOrSuperuser
 from .models import User
-from .serializers import UserSignUpSerializer, UserSerializer
-from .serializers import UserAuthSerializer
+from .serializers import UserSignUpSerializer, UserCreateSerializer
+from .serializers import UserSerializer, UserAuthSerializer
 
 
 class SignUpViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -29,6 +29,12 @@ class SignUpViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        if request.data['username'] == 'me':
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+                exception=True
+            )
         self.perform_create(serializer)
         self.send_mail(request)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -41,13 +47,21 @@ class AuthViewSet(viewsets.ModelViewSet):
 
 class UserCreateViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (IsAdminUser,)
+    serializer_class = UserCreateSerializer
+    permission_classes = (AdminOrSuperuser,)
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
 
-    def perform_create(self, serializer):
-        if serializer.validated_data['role'] == 'admin':
-            serializer.save(is_staff=True)
+
+class CurrentUserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
+
+    # def retrieve(self, request, *args, **kwargs):
+    #    user = self.get_object()
+    #    serializer = self.get_serializer(user)
+    #    return Response(serializer.data)
+    # !!! Код временно не работает, необходимо реализовать url api/v1/users/me
