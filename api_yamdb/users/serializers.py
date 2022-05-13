@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import User
 
@@ -19,13 +20,18 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role',
         )
 
     def validate(self, attrs):
-        user = self.context['request'].user
-        if user.role == 'admin':
-            user.is_staff = True
+        request = self.context['request']
+        if request.method == 'PATCH':
+            user = self.context['view'].get_object()
+            role = user.role
+            print(role)
+            if role == 'admin' or role != 'user' or role != 'moderator':
+                raise ValidationError('АТАТА')
+            return attrs
         return attrs
 
 
@@ -33,13 +39,4 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
-        )
-        read_only_fields = ('role',)
-
-
-# class UserAuthSerializer(serializers.ModelSerializer):
-#    class Meta:
-#        model = User
-#        fields = ('username', 'confirmation_code')
-#               !!! пока не реализовано !!!
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role',)
