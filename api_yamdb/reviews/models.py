@@ -161,7 +161,7 @@ class Comment(models.Model):
         Review,
         on_delete=models.CASCADE,
         related_name='comments',
-        verbose_name='Отзыв',        
+        verbose_name='Отзыв',
     )
     text = models.TextField(
         verbose_name='Текст комментария',
@@ -170,7 +170,7 @@ class Comment(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='comments',
-        verbose_name='Автор',       
+        verbose_name='Автор',
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
