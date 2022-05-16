@@ -53,7 +53,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.AllowAny,)
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
-    filter_class = TitleFilter
+    filterset_class = TitleFilter
     filterset_fields = (
         'category__slug',
         'genre__slug',
