@@ -2,7 +2,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, filters, status
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +11,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from api.permissions import AdminOrSuperuser
 from .models import User
-from .serializers import UserAuthSerializer
+from .serializers import UserAuthSerializer, CurrentUserSerializer
 from .serializers import UserSignUpSerializer, UserCreateSerializer
 
 
@@ -70,9 +70,15 @@ class UserCreateViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
 
-    @action(methods=['get'], detail=True, url_path='me')
-    def get_object(self):
-        if self.kwargs.get('username') == 'me':
-            self.permission_classes = (IsAuthenticated, )
-            return self.request.user
-        return super(UserCreateViewSet, self).get_object()
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    if request.method == "PATCH":
+        serializer = CurrentUserSerializer(request.user, data=request.data)
+        print(serializer)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    serializer = CurrentUserSerializer(request.user)
+    return Response(serializer.data)
